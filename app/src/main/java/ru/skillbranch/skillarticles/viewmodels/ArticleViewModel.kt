@@ -18,6 +18,7 @@ class ArticleViewModel(private val articleId: String) :
 
         //article - ArticleData даные из репо
         //state - ArticleState текущий стейт ArticleViewModel
+        //2000ms delay
         subscribeOnDataSource(getArticleData()) { article, state ->
             //получаем article, если он null выходим
             //иначе меняем значения state
@@ -27,10 +28,12 @@ class ArticleViewModel(private val articleId: String) :
                 title = article.title,
                 category = article.category,
                 categoryIcon = article.categoryIcon,
+                author = article.author,
                 date = article.date.format()
             )
         }
 
+        //5000ms delay
         subscribeOnDataSource(getArticleContent()) { content, state ->
             content ?: return@subscribeOnDataSource null
             state.copy(
@@ -39,6 +42,7 @@ class ArticleViewModel(private val articleId: String) :
             )
         }
 
+        //1000ms delay
         subscribeOnDataSource(getArticlePersonalInfo()) { info, state ->
             info ?: return@subscribeOnDataSource null
             state.copy(
@@ -48,6 +52,7 @@ class ArticleViewModel(private val articleId: String) :
         }
 
         //вконченом итоге общий стейт состоит из нескольких разных испочников данных
+        //0ms delay
         subscribeOnDataSource(repository.getAppSettings()) { settings, state ->
             state.copy(
                 isDarkMode = settings.isDarkMode,
@@ -93,7 +98,7 @@ class ArticleViewModel(private val articleId: String) :
         toggleLike()
 
         val msg = if (currentState.isLike) Notify.TextMessage("Mark is liked")
-        else Notify.ActionMessage("Dont like it anymore", "No still liked it", toggleLike)
+        else Notify.ActionMessage("Don`t like it anymore", "No, still like it", toggleLike)
 
         notify(msg)
     }
@@ -101,6 +106,11 @@ class ArticleViewModel(private val articleId: String) :
     override fun handleBookmark() {
         val personalInfo = currentState.toArticlePersonalInfo()
         repository.updateArticlePersonalInfo(personalInfo.copy(isBookmark = !personalInfo.isBookmark))
+
+        val msg = if (currentState.isBookmark) Notify.TextMessage("Add to bookmarks")
+        else Notify.TextMessage("Remove from bookmarks")
+
+        notify(msg)
     }
 
     override fun handleShare() {
