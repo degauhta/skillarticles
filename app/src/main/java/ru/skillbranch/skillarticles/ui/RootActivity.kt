@@ -2,8 +2,8 @@ package ru.skillbranch.skillarticles.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.Menu
-import android.view.MenuItem
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
@@ -13,7 +13,6 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_root.*
 import kotlinx.android.synthetic.main.layout_bottombar.*
 import kotlinx.android.synthetic.main.layout_submenu.*
-import kotlinx.android.synthetic.main.search_view.*
 import ru.skillbranch.skillarticles.R
 import ru.skillbranch.skillarticles.extensions.dpToIntPx
 import ru.skillbranch.skillarticles.viewmodels.ArticleState
@@ -23,8 +22,8 @@ import ru.skillbranch.skillarticles.viewmodels.Notify
 
 class RootActivity : AppCompatActivity() {
 
-    private lateinit var searchView: SearchView
     private lateinit var viewModel: ArticleViewModel
+    private var searchQuery: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,29 +42,30 @@ class RootActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_search_item, menu)
         val searchItem = menu?.findItem(R.id.action_search)
-        searchView = searchItem?.actionView as SearchView
-        return super.onPrepareOptionsMenu(menu)
-    }
+        val searchView = searchItem?.actionView as SearchView
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-//        menuInflater.inflate(R.menu.menu_search_item, menu)
-//        val searchItem = menu?.findItem(R.id.action_search)
-//        searchView = searchItem?.actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query?.length!! > 0) viewModel.handleSearchQuery(query)
+                return true
+            }
 
-//        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-//            override fun onQueryTextSubmit(query: String?): Boolean {
-////                viewModel.handleSearchQuery(query)
-//                return true
-//            }
-//
-//            override fun onQueryTextChange(newText: String?): Boolean {
-//                viewModel.handleSearchQuery(newText)
-//                return true
-//            }
-//        })
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText?.length!! > 0) viewModel.handleSearchQuery(newText)
+                return true
+            }
+        })
+
+        if (!TextUtils.isEmpty(searchQuery))
+            searchView.post {
+                searchItem.expandActionView()
+                searchView.setQuery(searchQuery, false)
+                searchView.clearFocus()
+            }
+
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -124,7 +124,7 @@ class RootActivity : AppCompatActivity() {
         toolbar.subtitle = data.category ?: "loading"
         if (data.categoryIcon != null) toolbar.logo = getDrawable(data.categoryIcon as Int)
 
-        //searchView?.setQuery(data.searchQuery, false)
+        searchQuery = data.searchQuery
     }
 
     private fun renderNotification(notify: Notify) {
