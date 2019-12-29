@@ -49,6 +49,7 @@
         android:elevation="8dp"
         android:theme="@style/ArticleBarsTheme"
         android:visibility="gone"
+        app:layout_behavior=".ui.custom.ArticleMenuNavigationBehavior"
         app:layout_dodgeInsetEdges="bottom"
         tools:visibility="visible" />
 
