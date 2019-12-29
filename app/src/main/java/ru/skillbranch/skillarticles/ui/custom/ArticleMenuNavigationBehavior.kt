@@ -10,7 +10,6 @@ import ru.skillbranch.skillarticles.R
 import kotlin.math.max
 import kotlin.math.min
 
-
 class ArticleMenuNavigationBehavior<V : View>(context: Context, attrs: AttributeSet) :
     CoordinatorLayout.Behavior<V>(context, attrs) {
 
@@ -48,7 +47,7 @@ class ArticleMenuNavigationBehavior<V : View>(context: Context, attrs: Attribute
         //clamps the translationY value between two bounds — 0 and the view height
         child.translationY = max(
             0f,
-            min(child.height.toFloat() + actionBarSize, child.translationY - dy)
+            min(child.height.toFloat() + actionBarSize, child.translationY + dy)
         )
     }
 }
