@@ -2,8 +2,8 @@ package ru.skillbranch.skillarticles.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.Menu
+import android.view.MenuItem
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
@@ -24,6 +24,7 @@ class RootActivity : AppCompatActivity() {
 
     private lateinit var viewModel: ArticleViewModel
     private var searchQuery: String? = null
+    private var isSearching = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +37,12 @@ class RootActivity : AppCompatActivity() {
         viewModel = ViewModelProviders.of(this, vmFactory).get(ArticleViewModel::class.java)
         viewModel.observeState(this) {
             renderUI(it)
+
+            //restore search mode
+            if (it.isSearch) {
+                isSearching = true
+                searchQuery = it.searchQuery
+            }
         }
         viewModel.observeNotifications(this) {
             renderNotification(it)
@@ -46,6 +53,25 @@ class RootActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.menu_search_item, menu)
         val searchItem = menu?.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as SearchView
+
+        //restore SearchView
+        if (isSearching) {
+            searchItem.expandActionView()
+            searchView.setQuery(searchQuery, false)
+            searchView.clearFocus()
+        }
+
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                viewModel.handleSearchMode(true)
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                viewModel.handleSearchMode(false)
+                return true
+            }
+        })
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -58,13 +84,6 @@ class RootActivity : AppCompatActivity() {
                 return true
             }
         })
-
-        if (!TextUtils.isEmpty(searchQuery))
-            searchView.post {
-                searchItem.expandActionView()
-                searchView.setQuery(searchQuery, false)
-                searchView.clearFocus()
-            }
 
         return super.onCreateOptionsMenu(menu)
     }
