@@ -1,11 +1,15 @@
 package ru.skillbranch.skillarticles.ui.custom
 
+import android.content.Context
+import android.util.AttributeSet
 import android.view.View
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.math.MathUtils
 import androidx.core.view.ViewCompat
 
-class BottomBarBehavior : CoordinatorLayout.Behavior<Bottombar>() {
+class BottomBarBehavior() : CoordinatorLayout.Behavior<Bottombar>() {
+
+    constructor(context: Context, attrs: AttributeSet) : this()
 
     //https://android.jlelse.eu/scroll-your-bottom-navigation-view-away-with-10-lines-of-code-346f1ed40e9e
 
