@@ -1,10 +1,14 @@
 package ru.skillbranch.skillarticles.ui
 
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Color
 import android.os.Bundle
+import android.text.Selection
+import android.text.Spannable
+import android.text.method.ScrollingMovementMethod
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -15,39 +19,95 @@ import kotlinx.android.synthetic.main.layout_bottombar.*
 import kotlinx.android.synthetic.main.layout_submenu.*
 import kotlinx.android.synthetic.main.search_view.*
 import ru.skillbranch.skillarticles.R
+import ru.skillbranch.skillarticles.base.BaseActivity
 import ru.skillbranch.skillarticles.extensions.dpToIntPx
+import ru.skillbranch.skillarticles.extensions.setMarginOptionally
+import ru.skillbranch.skillarticles.ui.custom.SearchFocusSpan
+import ru.skillbranch.skillarticles.ui.custom.SearchSpan
 import ru.skillbranch.skillarticles.viewmodels.ArticleState
 import ru.skillbranch.skillarticles.viewmodels.ArticleViewModel
-import ru.skillbranch.skillarticles.viewmodels.BaseViewModel
-import ru.skillbranch.skillarticles.viewmodels.Notify
+import ru.skillbranch.skillarticles.viewmodels.base.Notify
+import ru.skillbranch.skillarticles.viewmodels.base.ViewModelFactory
 
-class RootActivity : AppCompatActivity() {
+class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
 
-    private lateinit var viewModel: ArticleViewModel
+    override val layout: Int = R.layout.activity_root
+    override lateinit var viewModel: ArticleViewModel
     private var searchQuery: String? = null
     private var isSearching = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_root)
-        setupToolbar()
-        setupBottombar()
-        setupSubmenu()
 
-        val vmFactory = BaseViewModel.ViewModelFactory("0")
+        val vmFactory = ViewModelFactory("0")
         viewModel = ViewModelProviders.of(this, vmFactory).get(ArticleViewModel::class.java)
         viewModel.observeState(this) {
             renderUI(it)
-
-            //restore search mode
-//            if (it.isSearch) {
-//                isSearching = true
-//                searchQuery = it.searchQuery
-//            }
         }
         viewModel.observeNotifications(this) {
             renderNotification(it)
         }
+    }
+
+    override fun setupViews() {
+        setupToolbar()
+        setupBottombar()
+        setupSubmenu()
+    }
+
+    override fun renderSearchResult(searchResult: List<Pair<Int, Int>>) {
+        val content = tv_text_content.text as Spannable
+        val bgColor = Color.RED
+        val fgColor = Color.WHITE
+
+        clearSearchResult()
+
+        searchResult.forEach { (start, end) ->
+            content.setSpan(
+                SearchSpan(bgColor, fgColor),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        renderSearchPosition(0)
+    }
+
+    override fun renderSearchPosition(searchPosition: Int) {
+        val content = tv_text_content.text as Spannable
+        val bgColor = Color.RED
+        val fgColor = Color.WHITE
+
+        val spans = content.getSpans(0, content.length - 1, SearchSpan::class.java)
+        content.getSpans(0, content.length - 1, SearchFocusSpan::class.java)
+            .forEach { content.removeSpan(it) }
+        if (spans.isNotEmpty()) {
+            val result = spans[searchPosition]
+            Selection.setSelection(content, content.getSpanStart(result))
+            content.setSpan(
+                SearchFocusSpan(bgColor, fgColor),
+                content.getSpanStart(result),
+                content.getSpanEnd(result),
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+    }
+
+    override fun clearSearchResult() {
+        val content = tv_text_content.text as Spannable
+        content.getSpans(0, content.length - 1, SearchSpan::class.java)
+            .forEach { content.removeSpan(it) }
+    }
+
+    override fun showSearchBar() {
+        bottombar.setSearchState(true)
+        scroll.setMarginOptionally(bottom = dpToIntPx(56))
+    }
+
+    override fun hideSearchBar() {
+        bottombar.setSearchState(false)
+        scroll.setMarginOptionally(bottom = dpToIntPx(0))
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -76,12 +136,12 @@ class RootActivity : AppCompatActivity() {
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                if (query?.length!! > 0) viewModel.handleSearchQuery(query)
+                if (query?.length!! > 0) viewModel.handleSearch(query)
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText?.length!! > 0) viewModel.handleSearchQuery(newText)
+                if (newText?.length!! > 0) viewModel.handleSearch(newText)
                 return true
             }
         })
@@ -130,8 +190,11 @@ class RootActivity : AppCompatActivity() {
     }
 
     private fun renderUI(data: ArticleState) {
+        if (data.isSearch) showSearchBar() else hideSearchBar()
 
-        bottombar.setSearchState(data.isSearch)
+        if (data.searchResult.isNotEmpty()) renderSearchResult(data.searchResult)
+
+        if (data.searchResult.isNotEmpty()) renderSearchPosition(data.searchPosition)
 
         btn_settings.isChecked = data.isShowMenu
         if (data.isShowMenu) submenu.open() else submenu.close()
@@ -153,8 +216,14 @@ class RootActivity : AppCompatActivity() {
             btn_text_down.isChecked = true
         }
 
-        tv_text_content.text =
-            if (data.isLoadingContent) "loading" else data.content.first() as String
+        // bind content
+        if (data.isLoadingContent) {
+            tv_text_content.text = "loading"
+        } else if (tv_text_content.text == "loading") {
+            val content = data.content.first() as String
+            tv_text_content.setText(content, TextView.BufferType.SPANNABLE)
+            tv_text_content.movementMethod = ScrollingMovementMethod() // for setSelection
+        }
 
         toolbar.title = data.title ?: "loading"
         toolbar.subtitle = data.category ?: "loading"

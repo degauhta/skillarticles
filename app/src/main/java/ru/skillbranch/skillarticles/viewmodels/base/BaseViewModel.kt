@@ -1,11 +1,11 @@
-package ru.skillbranch.skillarticles.viewmodels
+package ru.skillbranch.skillarticles.viewmodels.base
 
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
 
 import androidx.lifecycle.*
 
-abstract class BaseViewModel<T>(initState: T) : ViewModel() {
+abstract class BaseViewModel<T : IViewModelState>(initState: T) : ViewModel() {
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     val notifications = MutableLiveData<Event<Notify>>()
@@ -76,16 +76,6 @@ abstract class BaseViewModel<T>(initState: T) : ViewModel() {
             state.value = onChanged(it, currentState) ?: return@addSource
         }
     }
-
-    class ViewModelFactory(private val params: String) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(ArticleViewModel::class.java)) {
-                return ArticleViewModel(params) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
-
 }
 
 class Event<out E>(private val content: E) {
