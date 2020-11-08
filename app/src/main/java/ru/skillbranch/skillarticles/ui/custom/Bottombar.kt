@@ -90,8 +90,8 @@ class Bottombar @JvmOverloads constructor(
             reveal,
             width,
             height / 2,
-            endRadius,
-            0f
+            0f,
+            endRadius
         )
         va.doOnEnd { group_bottom.isVisible = false }
         va.start()
