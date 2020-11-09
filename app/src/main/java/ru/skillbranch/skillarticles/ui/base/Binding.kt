@@ -11,8 +11,8 @@ abstract class Binding {
 
     abstract fun onFinishInflate()
     abstract fun bind(data: IViewModelState)
-    fun saveUi(outState: Bundle) {}
-    fun restoreUi(savedState: Bundle) {}
+    abstract fun saveUi(outState: Bundle)
+    abstract fun restoreUi(savedState: Bundle)
 
     @Suppress("UNCHECKED_CAST")
     fun <A, B, C, D> dependsOn(vararg fields: KProperty<*>, onChange: (A, B, C, D) -> Unit) {

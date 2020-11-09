@@ -35,15 +35,13 @@ import ru.skillbranch.skillarticles.viewmodels.base.ViewModelFactory
 
 class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
 
-    override val binding by lazy { ArticleBinding() }
+    override val binding: ArticleBinding by lazy { ArticleBinding() }
     override val layout: Int = R.layout.activity_root
     override val viewModel: ArticleViewModel by lazy {
         val vmFactory = ViewModelFactory("0")
         return@lazy ViewModelProviders.of(this, vmFactory).get(ArticleViewModel::class.java)
     }
 
-    private var searchQuery: String? = null
-    private var isSearching = false
     private val bgColor by AttrValue(R.attr.colorSecondary)
     private val fgColor by AttrValue(R.attr.colorOnSecondary)
 
@@ -110,10 +108,12 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
         val searchView = searchItem?.actionView as SearchView
 
         //restore SearchView
-        if (isSearching) {
+        if (binding.isFocusedSearch) {
             searchItem.expandActionView()
-            searchView.setQuery(searchQuery, false)
-            searchView.clearFocus()
+            searchView.setQuery(binding.searchQuery, false)
+
+            if (binding.isFocusedSearch) searchView.requestFocus()
+            else searchView.clearFocus()
         }
 
         searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
@@ -212,6 +212,9 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
     }
 
     inner class ArticleBinding() : Binding() {
+        var isFocusedSearch: Boolean = false
+        var searchQuery: String? = null
+//        private var isSearching = false
 
         private var isLoadingContent by ObserveProp(true)
 
@@ -294,5 +297,12 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
             searchPosition = data.searchPosition
         }
 
+        override fun saveUi(outState: Bundle) {
+            outState.putBoolean(::isFocusedSearch.name, search_view?.hasFocus() ?: false)
+        }
+
+        override fun restoreUi(savedState: Bundle) {
+            isFocusedSearch = savedState.getBoolean(::isFocusedSearch.name, false)
+        }
     }
 }
