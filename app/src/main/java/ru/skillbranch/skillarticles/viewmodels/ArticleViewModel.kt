@@ -132,7 +132,7 @@ class ArticleViewModel(private val articleId: String) :
         query ?: return
         val result = (currentState.content.firstOrNull() as? String).indexesOf(query)
             .map { it to it + query.length }
-        updateState { it.copy(searchQuery = query, searchResult = result, searchPosition = 0) }
+        updateState { it.copy(searchQuery = query, searchResults = result, searchPosition = 0) }
     }
 
     override fun handleToggleMenu() {
@@ -163,7 +163,7 @@ data class ArticleState(
     val isDarkMode: Boolean = false,
     val isSearch: Boolean = false,
     val searchQuery: String? = null,
-    val searchResult: List<Pair<Int, Int>> = emptyList(), //результаты поиска (стартовая и конечная позиции)
+    val searchResults: List<Pair<Int, Int>> = emptyList(), //результаты поиска (стартовая и конечная позиции)
     val searchPosition: Int = 0, //текущая позиция найденного результата
     val shareLink: String? = null,
     val title: String? = null, //заголовок статьи
@@ -181,7 +181,7 @@ data class ArticleState(
             bundleOf(
                 "isSearch" to isSearch,
                 "searchQuery" to searchQuery,
-                "searchResult" to searchResult,
+                "searchResult" to searchResults,
                 "searchPosition" to searchPosition
             )
         )
@@ -191,7 +191,7 @@ data class ArticleState(
         return copy(
             isSearch = savedState["isSearch"] as Boolean,
             searchQuery = savedState["searchQuery"] as? String,
-            searchResult = savedState["searchResult"] as List<Pair<Int, Int>>,
+            searchResults = savedState["searchResult"] as List<Pair<Int, Int>>,
             searchPosition = savedState["searchPosition"] as Int
         )
     }

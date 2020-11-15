@@ -1,4 +1,4 @@
-package ru.skillbranch.skillarticles.ui.custom
+package ru.skillbranch.skillarticles.ui.custom.behaviors
 
 import android.content.Context
 import android.util.AttributeSet
@@ -6,8 +6,9 @@ import android.view.View
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.math.MathUtils
 import androidx.core.view.ViewCompat
+import ru.skillbranch.skillarticles.ui.custom.Bottombar
 
-class BottomBarBehavior() : CoordinatorLayout.Behavior<Bottombar>() {
+class BottombarBehavior() : CoordinatorLayout.Behavior<Bottombar>() {
 
     constructor(context: Context, attrs: AttributeSet) : this()
 
