@@ -27,11 +27,14 @@
         <item name="colorOnPrimary">@color/color_on_article_bar</item>
         <item name="colorSurface">@color/color_article_bar</item>
         <item name="colorControlNormal">@color/color_on_article_bar</item>
+        <item name="android:textColorHint">@color/color_gray</item>
+        <item name="android:textColorPrimary">?attr/colorOnPrimary</item>
     </style>
 
     <style name="ArticleToolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
         <item name="titleTextColor">?attr/colorOnPrimary</item>
         <item name="contentInsetStartWithNavigation">0dp</item>
+        <item name="android:textColorSecondary">?attr/colorOnPrimary</item>
     </style>
 
     <style name="BottombarIcon">
@@ -42,14 +45,12 @@
         <item name="android:background">@drawable/ripple</item>
     </style>
 
+    <style name="BottombarSearchIcon" parent="BottombarIcon">
+        <item name="android:tint">@color/tint_search_color</item>
+    </style>
+
     <style name="CustomSnackbar" parent="Widget.MaterialComponents.Snackbar">
         <item name="layout_insetEdge">bottom</item>
     </style>
-
-    <style name="CustomSearchView">
-        <item name="android:editTextColor">@android:color/black</item>
-        <item name="android:textColorHint">@android:color/black</item>
-    </style>
-
 
 </resources>

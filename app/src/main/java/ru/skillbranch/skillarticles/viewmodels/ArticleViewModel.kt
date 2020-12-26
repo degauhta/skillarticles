@@ -1,5 +1,7 @@
 package ru.skillbranch.skillarticles.viewmodels
 
+import android.os.Bundle
+import androidx.core.os.bundleOf
 import androidx.lifecycle.LiveData
 import ru.skillbranch.skillarticles.data.ArticleData
 import ru.skillbranch.skillarticles.data.ArticlePersonalInfo
@@ -7,6 +9,10 @@ import ru.skillbranch.skillarticles.data.repositories.ArticleRepository
 import ru.skillbranch.skillarticles.extensions.data.toAppSettings
 import ru.skillbranch.skillarticles.extensions.data.toArticlePersonalInfo
 import ru.skillbranch.skillarticles.extensions.format
+import ru.skillbranch.skillarticles.extensions.indexesOf
+import ru.skillbranch.skillarticles.viewmodels.base.BaseViewModel
+import ru.skillbranch.skillarticles.viewmodels.base.IViewModelState
+import ru.skillbranch.skillarticles.viewmodels.base.Notify
 
 class ArticleViewModel(private val articleId: String) :
     BaseViewModel<ArticleState>(ArticleState()), IArticleViewModel {
@@ -119,11 +125,14 @@ class ArticleViewModel(private val articleId: String) :
     }
 
     override fun handleSearchMode(isSearch: Boolean) {
-
+        updateState { it.copy(isSearch = !it.isSearch, isShowMenu = false, searchPosition = 0) }
     }
 
     override fun handleSearch(query: String?) {
-
+        query ?: return
+        val result = (currentState.content.firstOrNull() as? String).indexesOf(query)
+            .map { it to it + query.length }
+        updateState { it.copy(searchQuery = query, searchResults = result, searchPosition = 0) }
     }
 
     override fun handleToggleMenu() {
@@ -132,6 +141,14 @@ class ArticleViewModel(private val articleId: String) :
 
     fun handleSearchQuery(newText: String?) {
         updateState { it.copy(searchQuery = newText) }
+    }
+
+    fun handleUpResult() {
+        updateState { it.copy(searchPosition = it.searchPosition.dec()) }
+    }
+
+    fun handleDownResult() {
+        updateState { it.copy(searchPosition = it.searchPosition.inc()) }
     }
 }
 
@@ -146,7 +163,7 @@ data class ArticleState(
     val isDarkMode: Boolean = false,
     val isSearch: Boolean = false,
     val searchQuery: String? = null,
-    val searchResult: List<Pair<Int, Int>> = emptyList(), //результаты поиска (стартовая и конечная позиции)
+    val searchResults: List<Pair<Int, Int>> = emptyList(), //результаты поиска (стартовая и конечная позиции)
     val searchPosition: Int = 0, //текущая позиция найденного результата
     val shareLink: String? = null,
     val title: String? = null, //заголовок статьи
@@ -157,5 +174,25 @@ data class ArticleState(
     val poster: String? = null, //обложка статьи
     val content: List<Any> = emptyList(),
     val reviews: List<Any> = emptyList()
+) : IViewModelState {
 
-)
+    override fun save(outState: Bundle) {
+        outState.putAll(
+            bundleOf(
+                "isSearch" to isSearch,
+                "searchQuery" to searchQuery,
+                "searchResult" to searchResults,
+                "searchPosition" to searchPosition
+            )
+        )
+    }
+
+    override fun restore(savedState: Bundle): IViewModelState {
+        return copy(
+            isSearch = savedState["isSearch"] as Boolean,
+            searchQuery = savedState["searchQuery"] as? String,
+            searchResults = savedState["searchResult"] as List<Pair<Int, Int>>,
+            searchPosition = savedState["searchPosition"] as Int
+        )
+    }
+}
