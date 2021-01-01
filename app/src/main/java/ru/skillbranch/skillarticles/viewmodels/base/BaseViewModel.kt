@@ -118,19 +118,21 @@ class EventObserver<E>(private val onEventUnhandledContent: (E) -> Unit) : Obser
 }
 
 //sealed class похожи на enum, только могут хранить какое-то состояние
-sealed class Notify(val message: String) {
+sealed class Notify {
     //data class поддверживает наследование ТОЛЬКО внутри sealed class
-    data class TextMessage(val msg: String) : Notify(msg)
+    abstract val message: String
+
+    data class TextMessage(override val message: String) : Notify()
 
     data class ActionMessage(
-        val msg: String,
+        override val message: String,
         val actionLabel: String,
         val actionHandler: (() -> Unit)
-    ) : Notify(msg)
+    ) : Notify()
 
     data class ErrorMessage(
-        val msg: String,
+        override val message: String,
         val errLabel: String?,
         val errHandler: (() -> Unit)?
-    ) : Notify(msg)
+    ) : Notify()
 }
