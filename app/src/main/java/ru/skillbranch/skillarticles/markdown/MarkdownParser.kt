@@ -35,7 +35,7 @@ object MarkdownParser {
     /**
      * clear markdown text to string without markdown characters
      */
-    fun clear(string: String): String? {
+    fun clear(string: String?): String? {
         return null
     }
 
@@ -241,4 +241,12 @@ sealed class Element() {
         override val text: CharSequence,
         override val elements: List<Element> = emptyList()
     ) : Element()
+
+    data class BlockCode(
+        val type: Type = Type.MIDDLE,
+        override val text: CharSequence,
+        override val elements: List<Element> = emptyList()
+    ) : Element() {
+        enum class Type { START, END, MIDDLE, SINGLE }
+    }
 }
