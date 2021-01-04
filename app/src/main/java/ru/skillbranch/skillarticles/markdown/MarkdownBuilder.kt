@@ -33,7 +33,7 @@ class MarkdownBuilder(context: Context) {
     private val colorOnSurface = context.attrValue(R.attr.colorOnSurface)
     private val colorSurface = context.attrValue(R.attr.colorSurface)
     private val cornerRadius = context.dpToPx(8)
-    private val lickIcon = context.getDrawable(R.drawable.ic_link_black_24)!!
+    private val linkIcon = context.getDrawable(R.drawable.ic_link_black_24dp)!!
     private val strikeWidth = context.dpToPx(4)
 
     fun markdownToSpan(string: String): SpannedString {
@@ -114,7 +114,7 @@ class MarkdownBuilder(context: Context) {
 
                 is Element.Link -> {
                     inSpans(
-                        IconLinkSpan(lickIcon, colorSecondary, gap, colorPrimary, strikeWidth),
+                        IconLinkSpan(linkIcon, colorSecondary, gap, colorPrimary, strikeWidth),
                         URLSpan(element.link)
                     ) {
                         append(element.text)

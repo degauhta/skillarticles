@@ -12,7 +12,7 @@ object MarkdownParser {
     private const val QUOTE_GROUP = "(> .+?$)"
     private const val ITALIC_GROUP = "((?<!\\*)\\*[^*].*?[^*]?\\*(?!\\*)|(?<!_)_[^_].*?[^_]?_(?!_))"
     private const val BOLD_GROUP = "((?<!\\*)\\*{2}[^*].*?[^*]?\\*{2}(?!\\*)|(?<!_)_{2}[^_].*?[^_]?_{2}(?!_))"
-    private const val STRIKE_GROUP = "(implement)" // todo
+    private const val STRIKE_GROUP = "((?<!~)~{2}[^~].*?[^~]?~{2}(?!~))"
     private const val RULE_GROUP = "(^[-_*]{3}$)"
     private const val INLINE_GROUP = "((?<!`)`[^`\\s].*?[^`\\s]?`(?!`))"
     private const val LINK_GROUP = "(\\[[^\\[\\]]*?]\\(.+?\\)|^\\[*?]\\(.*?\\))"
@@ -36,7 +36,16 @@ object MarkdownParser {
      * clear markdown text to string without markdown characters
      */
     fun clear(string: String?): String? {
-        return null
+        string ?: return null
+
+        val elements = findElements(string)
+
+        return if (elements.size == 1 && elements[0] is Element.Text) {
+            elements[0].text.toString()
+        } else {
+            val resString = elements.fold("") { result, el -> result.plus(el.text) }
+            clear(resString)
+        }
     }
 
     /**
